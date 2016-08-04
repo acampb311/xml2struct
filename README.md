@@ -11,3 +11,5 @@ Assuming a proper compiler configuration, the xml2struct can be compiled by `mex
 
 This utility attempts to retain compatibility with the MATLAB implementation found here: https://www.mathworks.com/matlabcentral/fileexchange/28518-xml2struct
 
+
+*If MATLAB returns an error when attempting to run xml2struct along the lines of 'modules not being found', make sure that the necessary *.dll files are present in a MATLAB path. In my experience (using the MinGW compiler), the files necessary are libatomic-1.dll, libgcc_s_seh-1.dll, libstdc++-6.dll, and libwinpthread-1.dll. These files can be found in the MinGW compiler directory. 
