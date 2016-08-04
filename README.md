@@ -9,5 +9,5 @@ In order for the project to be compiled, the pugixml utility source needs to be 
 
 Assuming a proper compiler configuration, the xml2struct can be compiled by `mex xml2struct.cpp pugixml.cpp`. The result will be a xml2struct.mex file that can be used by, `struct = xml2struct('*.xml');`.
 
-This utility attempts to remain compatible with the MATLAB implementation found here: https://www.mathworks.com/matlabcentral/fileexchange/28518-xml2struct
+This utility attempts to retain compatibility with the MATLAB implementation found here: https://www.mathworks.com/matlabcentral/fileexchange/28518-xml2struct
 
