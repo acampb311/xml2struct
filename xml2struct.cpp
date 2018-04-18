@@ -122,16 +122,19 @@ mxArray* parseChildNodes(pugi::xml_node& node)
         }
 
         distinctNames = getDistinctNodeNames(allChildNodeNames);
-        const char *distinctChildNodeNames[distinctNames.size()] = {};
-
-        for (int i = 0; i < distinctNames.size(); i++)
-        {
-            distinctChildNodeNames[i] = distinctNames.at(i).c_str();
-        }
+        
+        /* Patch for bypassing the variable-length arrays problems of modern C++ compilers */
+        std::vector<const char*> distinctChildNodeNames;
+        std::transform(distinctNames.begin(), distinctNames.end(), std::back_inserter(distinctChildNodeNames), [](const std::string & str) {
+            // initialize empty char array
+            char *output = new char[str.size()+1];
+            std::strcpy(output, str.c_str());
+            return output;
+        });        
 
         std::vector<std::string> processedNames;
 
-        children = mxCreateStructMatrix(1, 1, distinctNames.size(), distinctChildNodeNames);
+        children = mxCreateStructMatrix(1, 1, distinctNames.size(), &distinctChildNodeNames[0]);
 
         for (int idx = 0; idx < childNodes.size(); idx++)
         {
