@@ -4,16 +4,14 @@
 #include "pugixml.hpp"
 #include "mex.h"
 
-using namespace pugi;
-
 const char* node_types[] = { "null", "document", "element", "pcdata", "cdata", "comment", "pi", "declaration" };
 
-bool hasChildNodes(pugi::xml_node& node)
+bool HasChildNodes(pugi::xml_node& node)
 {
-    return node.first_child() == NULL ? false : true;
+    return node.first_child() != NULL;
 }
 
-std::vector<pugi::xml_node> getChildNodes(pugi::xml_node& node)
+std::vector<pugi::xml_node> GetChildNodes(pugi::xml_node& node)
 {
     std::vector<pugi::xml_node> childNodes;
     node = node.first_child();
@@ -27,7 +25,7 @@ std::vector<pugi::xml_node> getChildNodes(pugi::xml_node& node)
     return childNodes;
 }
 
-std::vector<std::string> getDistinctNodeNames(std::vector<std::string> nodes)
+std::vector<std::string> GetDistinctNodeNames(std::vector<std::string> nodes)
 {
     std::vector<std::string> distinctNames;
 
@@ -42,11 +40,11 @@ std::vector<std::string> getDistinctNodeNames(std::vector<std::string> nodes)
     return distinctNames;
 }
 
-mxArray *parseAttributes(pugi::xml_node& node)
+mxArray* ParseAttributes(pugi::xml_node& node)
 {
     mxArray *attributes = NULL;
     pugi::xml_attribute attr = node.first_attribute();
-    int pos;
+    std::size_t pos;
 
     if (attr != NULL)
     {
@@ -100,20 +98,21 @@ mxArray *parseAttributes(pugi::xml_node& node)
     return attributes;
 }
 
-mxArray* parseChildNodes(pugi::xml_node& node)
+mxArray* ParseChildNodes(pugi::xml_node& node)
 {
     mxArray *children = NULL;
+	pugi::xml_attribute tempAttr = node.first_attribute();
 
-    if (hasChildNodes(node))
+    if (HasChildNodes(node) || tempAttr != NULL)
     {
-        mxArray *attributes = parseAttributes(node);
+        mxArray *attributes = ParseAttributes(node);
 
         std::vector<std::string> distinctNames;
         std::vector<std::string> allChildNodeNames;
         std::vector<pugi::xml_node> childNodes;
-        int numChildNodes;
+        std::size_t numChildNodes;
 
-        childNodes = getChildNodes(node);
+        childNodes = GetChildNodes(node);
         numChildNodes = childNodes.size();
 
         for (int i = 0; i < numChildNodes; i++)
@@ -121,7 +120,7 @@ mxArray* parseChildNodes(pugi::xml_node& node)
             allChildNodeNames.push_back(childNodes.at(i).name());
         }
 
-        distinctNames = getDistinctNodeNames(allChildNodeNames);
+        distinctNames = GetDistinctNodeNames(allChildNodeNames);
         
         /* Patch for bypassing the variable-length arrays problems of modern C++ compilers */
         std::vector<const char*> distinctChildNodeNames;
@@ -134,7 +133,7 @@ mxArray* parseChildNodes(pugi::xml_node& node)
 
         std::vector<std::string> processedNames;
 
-        children = mxCreateStructMatrix(1, 1, distinctNames.size(), &distinctChildNodeNames[0]);
+        children = mxCreateStructMatrix(1, 1, (int)distinctNames.size(), &distinctChildNodeNames[0]);
 
         for (int idx = 0; idx < childNodes.size(); idx++)
         {
@@ -160,12 +159,12 @@ mxArray* parseChildNodes(pugi::xml_node& node)
                             mxArray *temp = glhf;
                             glhf = mxCreateCellMatrix(1, 2);
                             mxSetCell(glhf, 0, temp);
-                            mxSetCell(glhf, 1, parseChildNodes(theChild));
+                            mxSetCell(glhf, 1, ParseChildNodes(theChild));
                             mxSetCell(children, indexOfMatchingItem, glhf);
                         }
                         else
                         {
-                            int numberItemsInCell = mxGetN(glhf);
+                            std::size_t numberItemsInCell = mxGetN(glhf);
                             mxArray *temp = glhf;
                             glhf = mxCreateCellMatrix(1, numberItemsInCell + 1);
 
@@ -174,7 +173,7 @@ mxArray* parseChildNodes(pugi::xml_node& node)
                                 mxSetCell(glhf, i, mxGetCell(temp, i));
                             }
 
-                            mxSetCell(glhf, numberItemsInCell, parseChildNodes(theChild));
+                            mxSetCell(glhf, numberItemsInCell, ParseChildNodes(theChild));
                             mxSetCell(children, indexOfMatchingItem, glhf);
                         }
                     }
@@ -182,7 +181,7 @@ mxArray* parseChildNodes(pugi::xml_node& node)
                 //add previously unknown (new) element to the structure
                 else
                 {
-                    mxSetCell(children, indexOfMatchingItem, parseChildNodes(theChild));
+                    mxSetCell(children, indexOfMatchingItem, ParseChildNodes(theChild));
                 }
 
                 processedNames.push_back(temp);
@@ -221,7 +220,7 @@ mxArray* parseChildNodes(pugi::xml_node& node)
     return children;
 }
 
-void  mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     char *input_buf;
     size_t buflen;
@@ -247,7 +246,7 @@ void  mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     else
     {
         pugi::xml_node topNode = doc;
-        mxArray *vin1 = parseChildNodes(topNode);
+        mxArray *vin1 = ParseChildNodes(topNode);
         plhs[0] = vin1;
     }
 }
