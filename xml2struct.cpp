@@ -101,7 +101,7 @@ mxArray* ParseAttributes(pugi::xml_node& node)
 mxArray* ParseChildNodes(pugi::xml_node& node)
 {
     mxArray *children = NULL;
-	pugi::xml_attribute tempAttr = node.first_attribute();
+    pugi::xml_attribute tempAttr = node.first_attribute();
 
     if (HasChildNodes(node) || tempAttr != NULL)
     {
