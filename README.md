@@ -1,3 +1,4 @@
+[![View acampb311/xml2struct on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/59368-acampb311-xml2struct)
 # xml2struct
 Semi-optimized utility for converting an xml document to a MATLAB structure. It was created in order to facilitate time-efficient parsing of large XML files on windows based systems.
 
